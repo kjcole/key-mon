@@ -25,87 +25,93 @@ from gi.repository import Gtk, Gdk, GLib
 
 from . import lazy_pixbuf_creator
 
+
 class ShapedWindow(Gtk.Window):
-  """Create a window shaped as fname."""
-  def __init__(self, fname, scale=1.0, timeout=0.2):
-    Gtk.Window.__init__(self)
-    self.connect('size-allocate', self._on_size_allocate)
-    self.set_decorated(False)
-    self.set_keep_above(True)
-    self.set_accept_focus(False)
-    self.scale = scale
-    self.shown = False
-    self.timeout = timeout
-    self.timeout_timer = None
-    self.name_fnames = {
-      'mouse' : [fname],
-    }
-    self.pixbufs = lazy_pixbuf_creator.LazyPixbufCreator(self.name_fnames,
-                                                         self.scale)
-    self.pixbuf = self.pixbufs.get('mouse')
-    self.resize(self.pixbuf.get_width(), self.pixbuf.get_height())
+    """Create a window shaped as fname."""
 
-    # a pixmap widget to contain the pixmap
-    self.image = Gtk.Image.new_from_pixbuf(self.pixbuf)
+    def __init__(self, fname, scale=1.0, timeout=0.2):
+        Gtk.Window.__init__(self)
+        self.connect("size-allocate", self._on_size_allocate)
+        self.set_decorated(False)
+        self.set_keep_above(True)
+        self.set_accept_focus(False)
+        self.scale = scale
+        self.shown = False
+        self.timeout = timeout
+        self.timeout_timer = None
+        self.name_fnames = {"mouse": [fname]}
+        self.pixbufs = lazy_pixbuf_creator.LazyPixbufCreator(self.name_fnames,
+                                                             self.scale)
+        self.pixbuf = self.pixbufs.get("mouse")
+        self.resize(self.pixbuf.get_width(), self.pixbuf.get_height())
 
-    rgba = self.get_screen().get_rgba_visual()
-    if rgba is not None:
-        self.set_visual(rgba)
+        # a pixmap widget to contain the pixmap
+        self.image = Gtk.Image.new_from_pixbuf(self.pixbuf)
 
-    self.set_name("mouse-follow")
-    provider = Gtk.CssProvider()
-    provider.load_from_data(
-    b"""
+        rgba = self.get_screen().get_rgba_visual()
+        if rgba is not None:
+            self.set_visual(rgba)
+
+        self.set_name("mouse-follow")
+        provider = Gtk.CssProvider()
+        provider.load_from_data(
+            b"""
     #mouse-follow {
         background-color:rgba(0,0,0,0);
     }
     """
-    )
-    context = self.get_style_context()
-    context.add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        )
+        context = self.get_style_context()
+        context.add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
-    self.image.show()
-    self.add(self.image)
+        self.image.show()
+        self.add(self.image)
 
-  def _on_size_allocate(self, win, unused_allocation):
-    """Called when first allocated."""
-    # Set the window shape
-    win.set_property('skip-taskbar-hint', True)
-    if not win.is_composited():
-      print('Unable to fade the window')
-    else:
-      win.set_opacity(0.5)
+    def _on_size_allocate(self, win, unused_allocation):
+        """Called when first allocated."""
+        # Set the window shape
+        win.set_property("skip-taskbar-hint", True)
+        if not win.is_composited():
+            print("Unable to fade the window")
+        else:
+            win.set_opacity(0.5)
 
-  def center_on_cursor(self, x=None, y=None):
-    if x is None or y is None:
-      root = Gdk.Screen.get_default().get_root_window()
-      _, x, y, _ = root.get_pointer()
-    w, h = self.get_size()
-    new_x, new_y = x - w/2, y - h/2
-    pos = self.get_position()
-    if pos[0] != new_x or pos[1] != new_y:
-      self.move(new_x, new_y)
-      self.show()
+    def center_on_cursor(self, x=None, y=None):
+        if x is None or y is None:
+            root = Gdk.Screen.get_default().get_root_window()
+            _, x, y, _ = root.get_pointer()
+        w, h = self.get_size()
+        new_x, new_y = x - w / 2, y - h / 2
+        pos = self.get_position()
+        if pos[0] != new_x or pos[1] != new_y:
+            self.move(new_x, new_y)
+            self.show()
 
-  def show(self):
-    """Show this mouse indicator and ignore awaiting fade away request."""
-    if self.timeout_timer and self.shown:
-      # There is a fade away request, ignore it
-      if GLib.main_context_default().find_source_by_id(self.timeout_timer) and not GLib.main_context_default().find_source_by_id(self.timeout_timer).is_destroyed():
-        GLib.source_remove(self.timeout_timer)
-      self.timeout_timer = None
-      # This method only is called when mouse is pressed, so there will be a
-      # release and fade_away call, no need to set up another timer.
-    super(ShapedWindow, self).show()
+    def show(self):
+        """Show this mouse indicator and ignore awaiting fade away request."""
+        if self.timeout_timer and self.shown:
+            # There is a fade away request, ignore it
+            if (GLib.main_context_default()
+                    .find_source_by_id(self.timeout_timer)
+                and not GLib.main_context_default()
+                            .find_source_by_id(self.timeout_timer)
+                            .is_destroyed()):
+                GLib.source_remove(self.timeout_timer)
+            self.timeout_timer = None
+            # This method only is called when mouse is pressed, so
+            # there will be a release and fade_away call, no need to
+            # set up another timer.
+        super(ShapedWindow, self).show()
 
-  def maybe_show(self):
-    if self.shown or not self.timeout_timer:
-      return
-    self.shown = True
-    self.show()
+    def maybe_show(self):
+        if self.shown or not self.timeout_timer:
+            return
+        self.shown = True
+        self.show()
 
-  def fade_away(self):
-    """Make the window fade in a little bit."""
-    # TODO this isn't doing any fading out
-    self.shown = False
-    self.timeout_timer = GLib.timeout_add(int(self.timeout * 1000), self.hide)
+    def fade_away(self):
+        """Make the window fade in a little bit."""
+        # TODO this isn't doing any fading out
+        self.shown = False
+        self.timeout_timer = GLib.timeout_add(int(self.timeout * 1000),
+                                              self.hide)

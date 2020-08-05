@@ -27,126 +27,129 @@ composted with the previous element (overlayed on top of).
 Alpha transparencies from the new, overlayed, image are respected.
 """
 
-__author__ = 'scott@forusers.com (Scott Kirkwood))'
+__author__ = "scott@forusers.com (Scott Kirkwood))"
 
-import gi
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GdkPixbuf
 import logging
 import os
 import sys
 import re
 import tempfile
-import types
+import gi
+
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, GdkPixbuf
+
 
 class LazyPixbufCreator(object):
-  """Class to create SVG images on the fly."""
-  def __init__(self, name_fnames, resize):
-    """Initialize with empty.
+    """Class to create SVG images on the fly."""
+
+    def __init__(self, name_fnames, resize):
+        """Initialize with empty.
 
     Args:
       name_fnames: List of names to filename list.
     """
-    self.pixbufs = {}
-    self.resize = resize
-    self.name_fnames = name_fnames
+        self.pixbufs = {}
+        self.resize = resize
+        self.name_fnames = name_fnames
 
-  def reset_all(self, names_fnames, resize):
-    """Resets the name to filenames and size."""
-    self.pixbufs = {}
-    self.name_fnames = names_fnames
-    self.resize = resize
+    def reset_all(self, names_fnames, resize):
+        """Resets the name to filenames and size."""
+        self.pixbufs = {}
+        self.name_fnames = names_fnames
+        self.resize = resize
 
-  def get(self, name):
-    """Get the pixbuf with this name."""
-    if name not in self.pixbufs:
-      name = self.create_pixbuf(name)
-    return self.pixbufs[name]
+    def get(self, name):
+        """Get the pixbuf with this name."""
+        if name not in self.pixbufs:
+            name = self.create_pixbuf(name)
+        return self.pixbufs[name]
 
-  def create_pixbuf(self, name):
-    """Creates the image.
+    def create_pixbuf(self, name):
+        """Creates the image.
     Args:
       name: name of the image we are to create.
     Returns:
       The name given or EMPTY if error.
     """
-    if name not in self.name_fnames:
-      logging.error(f'Don\'t understand the name {name!r}')
-      return 'KEY_EMPTY'
-    ops = self.name_fnames[name]
-    img = None
-    for operation in ops:
-      if isinstance(operation, str):
-        img = self._composite(img, self._read_from_file(operation))
-      else:
-        image_bytes = operation()
-        image_bytes = self._resize(image_bytes)
-        img = self._composite(img, self._read_from_bytes(image_bytes))
-    self.pixbufs[name] = img
-    return name
+        if name not in self.name_fnames:
+            logging.error(f"Don't understand the name {name!r}")
+            return "KEY_EMPTY"
+        ops = self.name_fnames[name]
+        img = None
+        for operation in ops:
+            if isinstance(operation, str):
+                img = self._composite(img, self._read_from_file(operation))
+            else:
+                image_bytes = operation()
+                image_bytes = self._resize(image_bytes)
+                img = self._composite(img, self._read_from_bytes(image_bytes))
+        self.pixbufs[name] = img
+        return name
 
-  def _composite(self, img, img2):
-    """Combine/layer img2 on top of img.
+    def _composite(self, img, img2):
+        """Combine/layer img2 on top of img.
     Args:
       img: original image (or None).
       img2: new image to add on top.
     Returns:
       updated image.
     """
-    if img:
-      img2.composite(img,
-          0, 0, img.props.width, img.props.height,  # x, y, w, h
-          0, 0,  # offset x, y
-          1.0, 1.0,  # scale x, y
-          GdkPixbuf.InterpType.HYPER, 255)  # interpolation type, alpha
-      return img
-    return img2
+        if img:
+            img2.composite(img,
+                           0, 0, img.props.width, img.props.height,  # x,y,w,h
+                           0, 0,                             # offset x,y
+                           1.0, 1.0,                         # scale  x,y
+                           GdkPixbuf.InterpType.HYPER, 255)  # interpolation type, alpha
+            return img
+        return img2
 
-  def _read_from_file(self, fname):
-    """Read in the file in from fname."""
-    logging.debug(f'Read file {fname}')
-    if self.resize == 1.0:
-      return GdkPixbuf.Pixbuf.new_from_file(fname)
-    fin = open(fname)
-    image_bytes = self._resize(fin.read())
-    fin.close()
-    return self._read_from_bytes(image_bytes)
+    def _read_from_file(self, fname):
+        """Read in the file in from fname."""
+        logging.debug(f"Read file {fname}")
+        if self.resize == 1.0:
+            return GdkPixbuf.Pixbuf.new_from_file(fname)
+        fin = open(fname)
+        image_bytes = self._resize(fin.read())
+        fin.close()
+        return self._read_from_bytes(image_bytes)
 
-  def _read_from_bytes(self, image_bytes):
-    """Writes the bytes to a file and then reads the file."""
-    fout, fname = tempfile.mkstemp(prefix='keymon-', suffix='.svg')
-    os.write(fout, str.encode(image_bytes))
-    os.close(fout)
-    try:
-      img = GdkPixbuf.Pixbuf.new_from_file(fname)
-    except:
-      logging.error(f'Unable to read {fname!r}: {image_bytes}')
-      sys.exit(-1)
+    def _read_from_bytes(self, image_bytes):
+        """Writes the bytes to a file and then reads the file."""
+        fout, fname = tempfile.mkstemp(prefix="keymon-", suffix=".svg")
+        os.write(fout, str.encode(image_bytes))
+        os.close(fout)
+        try:
+            img = GdkPixbuf.Pixbuf.new_from_file(fname)
+        except:
+            logging.error(f"Unable to read {fname!r}: {image_bytes}")
+            sys.exit(-1)
 
-    try:
-      os.unlink(fname)
-    except OSError:
-      pass
-    return img
+        try:
+            os.unlink(fname)
+        except OSError:
+            pass
+        return img
 
-  def _resize(self, image_bytes):
-    """Resize the image by manipulating the svg."""
-    if self.resize == 1.0:
-      return image_bytes
-    template = r'(<svg[^<]+)({}=")(\d+\.?\d*)'
-    image_bytes = self._resize_text(image_bytes, template.format('width'))
-    image_bytes = self._resize_text(image_bytes, template.format('height'))
-    image_bytes = image_bytes.replace('<g',
-        f'<g transform="scale({self.resize}, {self.resize})"', 1)
-    return image_bytes
+    def _resize(self, image_bytes):
+        """Resize the image by manipulating the svg."""
+        if self.resize == 1.0:
+            return image_bytes
+        template = r'(<svg[^<]+)({}=")(\d+\.?\d*)'
+        image_bytes = self._resize_text(image_bytes, template.format("width"))
+        image_bytes = self._resize_text(image_bytes, template.format("height"))
+        image_bytes = image_bytes.replace(
+            "<g", f'<g transform="scale({self.resize}, {self.resize})"', 1
+        )
+        return image_bytes
 
-  def _resize_text(self, image_bytes, regular_exp):
-    """Change the numeric value of some sizing text by regular expression."""
-    re_x = re.compile(regular_exp)
-    grps = re_x.search(image_bytes)
-    if grps:
-      num = float(grps.group(3))
-      num = num * self.resize
-      replace = grps.group(1) + grps.group(2) + str(num)
-      image_bytes = re_x.sub(replace, image_bytes, 1)
-    return image_bytes
+    def _resize_text(self, image_bytes, regular_exp):
+        """Change the numeric value of some sizing text by regular expression."""
+        re_x = re.compile(regular_exp)
+        grps = re_x.search(image_bytes)
+        if grps:
+            num = float(grps.group(3))
+            num = num * self.resize
+            replace = grps.group(1) + grps.group(2) + str(num)
+            image_bytes = re_x.sub(replace, image_bytes, 1)
+        return image_bytes
