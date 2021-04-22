@@ -286,7 +286,7 @@ class Options(object):
         self._opt_group_desc[group] = desc
 
     def add_option(self, dest, type="str",
-                   default=None, name=None,  help=None,
+                   default=None, name=None, help=None,
                    opt_short=None, opt_long=None,
                    ini_group=None, ini_name=None):
         """Create an option
@@ -422,8 +422,8 @@ if __name__ == "__main__":
                  default=1.0,
                  ini_group="ui",
                  ini_name="scale",
-                 help="Scale the dialog. ex. 2.0 is 2 times larger, 0.5 is "
-                      "half the size. Defaults to %default")
+                 help="Scale the dialog. ex. 2.0 is 2 times larger, "
+                      "0.5 is half the size. Defaults to %default")
     o.add_option(opt_long="--kbdfile",
                  dest="kbd_file",
                  ini_group="devices",
@@ -441,7 +441,8 @@ if __name__ == "__main__":
                  type="str",
                  ini_group="ui",
                  ini_name="theme",
-                 help='The theme to use when drawing status images (ex. "-t apple").')
+                 help='The theme to use when drawing status images '
+                      '(ex. "-t apple").')
     o.add_option(opt_long="--list-themes",
                  dest="list_themes",
                  type="bool",
@@ -451,8 +452,9 @@ if __name__ == "__main__":
                  type="int",
                  ini_group="buttons",
                  ini_name="old-keys",
-                 help="How many historical keypresses to show (defaults to %default)",
-                 default=0)
+                 default=0,
+                 help="How many historical keypresses to show "
+                      "(defaults to %default)")
     o.add_option(opt_short=None,
                  opt_long=None,
                  type="int",
@@ -462,11 +464,11 @@ if __name__ == "__main__":
                  ini_group="position",
                  ini_name="x")
     o.add_option_group("Developer Options", "Don't use")
-    o.add_option( opt_short="-d",
-                  opt_long="--debug",
-                  dest="debug",
-                  type="bool",
-                  help="Output debugging information.")
+    o.add_option(opt_short="-d",
+                 opt_long="--debug",
+                 dest="debug",
+                 type="bool",
+                 help="Output debugging information.")
     lines = []
     lines.append("[ui]")
     lines.append("scale = 1.0")
