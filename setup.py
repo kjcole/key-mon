@@ -25,10 +25,10 @@ VER = "1.19"
 PY_NAME = "key_mon"
 DEB_NAME = NAME.replace("-", "")
 RELEASE_FILE = "RELEASE.rst"
-VCS = f"http://{NAME}.code.google.com/hg"
+VCS = "https://github.com/scottkirkwood/key-mon.git"
 
 PY_SRC = f"{PY_NAME}.py"
-DEPENDS = ["python-xlib", "python-gtk2"]
+DEPENDS = ["python3-xlib", "python3-gi-cairo", "gir1.2-gtk-3.0"]
 DEPENDS_STR = " ".join(DEPENDS)
 
 MENU_SUBSECTION = "Graphics"
@@ -41,7 +41,7 @@ MAN_FILE = f"man/{NAME}.1"
 DESKTOP_FILE = f"icons/{NAME}.desktop"
 ICON = f"icons/{NAME}.xpm"
 COMMAND = f"/usr/bin/{NAME}"
-LANGS = ["pt_BR"]
+LANGS = []
 HICOLOR_PNG_SIZES = [16, 24, 32, 48, 64, 128]
 
 SETUP = dict(
@@ -60,16 +60,16 @@ SETUP = dict(
         ("share/icons/hicolor",
          [f"icons/hicolor/{x}x{x}/apps/{NAME}.png"
              for x in HICOLOR_PNG_SIZES]),
-        ("share/icons/hicolor", [f"icons/hicolor/scalable/apps/{NAME}.svg"]),
-    ],
+        ("share/icons/hicolor",
+         [f"icons/hicolor/scalable/apps/{NAME}.svg"])],
     scripts=["src/key-mon"],
     author=AUTHOR_NAME,
     author_email="scott+keymon@forusers.com",
     platforms=["POSIX"],
     license="Apache 2.0",
     keywords=" ".join(KEYWORDS),
-    url=f"http://code.google.com/p/{NAME}",
-    download_url=f"http://{NAME}.googlecode.com/files/{NAME}-{VER}.zip",
+    url="https://github.com/scottkirkwood/key-mon",
+    download_url=f"https://github.com/scottkirkwood/{NAME}/archive/{VER}.zip",
     description=_("A screencast utility that displays your keyboard "
                   "and mouse status"),
     long_description=_("""Key-mon is useful for teaching since it shows """
@@ -77,7 +77,8 @@ SETUP = dict(
                        """and you use them in another application.  No """
                        """longer do you need to say 'Now I'm pressing the """
                        """Ctrl-D key', your students can just see the """
-                       """keystroke for themselves."""),
+                       """keystroke for themselves."""
+    ),
     classifiers=["Development Status :: 5 - Production/Stable",
                  "Environment :: X11 Applications",
                  "Intended Audience :: Education",
