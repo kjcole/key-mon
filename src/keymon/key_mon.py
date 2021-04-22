@@ -919,7 +919,7 @@ class KeyMon:
 
         dlg.set_name("Keyboard Status Monitor")
         dlg.set_program_name("key-mon")
-        dlg.set_website("http://code.google.com/p/key-mon/")
+        dlg.set_website("https://github.com/scottkirkwood/key-mon")
         dlg.set_version(__version__)
         dlg.set_authors(
             [__author__, "Yu-Jie Lin", "Danial G. Taylor", "Jakub Steiner"]
@@ -1158,10 +1158,8 @@ def create_options():
                     help="Last Y Position",
                     ini_group="position",
                     ini_name="y")
-
-    opts.add_option_group(
-        _("Developer Options"), _("These options are for developers.")
-    )
+    opts.add_option_group(_("Developer Options"),
+                          _("These options are for developers."))
     opts.add_option(opt_long="--loglevel",
                     dest="loglevel",
                     type="str",
