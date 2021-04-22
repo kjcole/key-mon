@@ -208,7 +208,7 @@ class MiscFrame(CommonFrame):
             vbox,
             _("StickyKeys mode"),
             _("Make modifier keys be sticky"),
-            "sticky_mode",
+            "sticky_mode"
         )
 
         sizes = ["1.0", "0.6", "0.8", "1.0", "1.2", "1.4", "1.6", "1.8"]
