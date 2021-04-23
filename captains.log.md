@@ -362,4 +362,14 @@ I forget what all the various "themes" look like, which one I
 preferred, and how to set it as the default, but the basic code is
 installed locally (`~/.local/lib/python3/...`) and working.
 
+And, while we're at it, put the `man` page where it can be found
+
+```
+$ manpath 
+~/.local/share/man:/usr/local/man:/usr/local/share/man:/usr/share/man
+$ cp man/key-mon.1 ~/.local/share/man/man1/
+```
+
+(And add an alias to `~/.bash_aliases`)
+
 ----
